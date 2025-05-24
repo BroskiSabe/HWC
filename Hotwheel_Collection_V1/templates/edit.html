@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head><title>Edit Car</title></head>
+<body>
+  <h1>Edit Car</h1>
+  <form method="POST">
+    <input type="text" name="name" value="{{ car[1] }}" required><br>
+    <input type="text" name="year" value="{{ car[2] }}" required><br>
+    <input type="text" name="category" value="{{ car[3] }}" required><br>
+    <input type="submit" value="Update">
+  </form>
+  <a href="{{ url_for('index') }}">Back</a>
+
+<link href="https://fonts.googleapis.com/css2?family=Fontdiner+Swanky&family=Carter+One&display=swap" rel="stylesheet">
+<style>
+  #font-selector-container {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    animation: fadeIn 1s ease-in-out;
+  }
+
+  #font-selector {
+    padding: 8px;
+    border-radius: 5px;
+    background: var(--card-bg, #1f1f1f);
+    color: var(--text-color, #e0e0e0);
+    font-size: 1em;
+    border: none;
+    transition: all 0.3s ease-in-out;
+  }
+
+  #font-selector:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+<div id="font-selector-container">
+  <select id="font-selector">
+    <option value="Fontdiner Swanky">Fontdiner Swanky</option>
+    <option value="Carter One">Carter One</option>
+  </select>
+</div>
+<script>
+  const fontSelector = document.getElementById('font-selector');
+  fontSelector.addEventListener('change', () => {
+    document.body.style.fontFamily = `'${fontSelector.value}', cursive`;
+    localStorage.setItem('selectedFont', fontSelector.value);
+  });
+  window.addEventListener('load', () => {
+    const savedFont = localStorage.getItem('selectedFont');
+    if (savedFont) {
+      document.body.style.fontFamily = `'${savedFont}', cursive`;
+      fontSelector.value = savedFont;
+    }
+  });
+</script>
+
+</body>
+</html>

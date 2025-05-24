@@ -1,0 +1,16 @@
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtualenvs
+env/
+venv/
+
+# Static uploads and database
+static/uploads/
+database/
+
+# IDE files
+*.vscode/
+*.idea/

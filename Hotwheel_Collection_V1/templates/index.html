@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Hot Wheels Collection</title>
+  <!-- Load Roboto + the two selector fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto&family=Fontdiner+Swanky&family=Carter+One&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --card-bg: #1f1f1f;
+      --accent: rgb(0, 157, 248);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    h1, h2 {
+      color: var(--accent);
+      margin-top: 0;
+    }
+
+    /* Shared panel styles */
+    form, .top-favorites, .car-entry {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 0;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      background: #2a2a2a;
+      color: var(--text-color);
+      border: 1px solid #444;
+      border-radius: 5px;
+      font: inherit;
+    }
+    input::placeholder {
+      color: #999;
+    }
+    button {
+      background-color: var(--accent);
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+
+    /* Car list entries */
+    .car-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .car-entry img {
+      height: 60px;
+      margin-right: 12px;
+      border-radius: 5px;
+    }
+    .actions a {
+      margin-left: 10px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 1.2em;
+    }
+    .actions a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── NEW LAYOUT ── */
+    .top-section {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .top-left, .top-right {
+      flex: 1;
+    }
+    /* stack the two forms nicely */
+    .top-left form + form {
+      margin-top: 16px;
+    }
+    /* zero out the bottom margin here since container handles spacing */
+    .top-right .top-favorites {
+      margin-bottom: 0;
+    }
+
+    /* ── Font Selector ── */
+    #font-selector-container {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      animation: fadeIn 1s ease-in-out;
+    }
+    #font-selector {
+      padding: 8px;
+      border-radius: 5px;
+      background: var(--card-bg);
+      color: var(--text-color);
+      border: none;
+      transition: all 0.3s ease-in-out;
+      font-size: 1em;
+    }
+    #font-selector:hover {
+      transform: scale(1.05);
+      cursor: pointer;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+
+  <script>
+    // Theme toggling
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+    function applySavedTheme() {
+      const saved = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+    // Font selector persistence
+    function applySavedFont() {
+      const sel = document.getElementById('font-selector');
+      const saved = localStorage.getItem('selectedFont');
+      if (saved) {
+        document.body.style.fontFamily = `'${saved}', cursive`;
+        sel.value = saved;
+      }
+    }
+  </script>
+</head>
+
+<body onload="applySavedTheme(); applySavedFont()">
+
+  <h1>Hello, {{ current_user.username }}</h1>
+
+  <!-- Font Selector -->
+  <div id="font-selector-container">
+    <select id="font-selector" onchange="
+      document.body.style.fontFamily = `'${this.value}', cursive`;
+      localStorage.setItem('selectedFont', this.value);
+    ">
+      <option value="Fontdiner Swanky">Fontdiner Swanky</option>
+      <option value="Carter One">Carter One</option>
+    </select>
+  </div>
+
+  <!-- ── TOP SECTION: LEFT=forms, RIGHT=favorites ── -->
+  <div class="top-section">
+    <div class="top-left">
+      <!-- Search form -->
+      <form method="get">
+        <input
+          type="text"
+          name="search"
+          placeholder="Search cars by name"
+          value="{{ request.args.get('search', '') }}"
+        >
+        <select name="category">
+          <option value="">All Categories</option>
+          <option value="Muscle">Muscle</option>
+          <option value="Exotic">Exotic</option>
+          <option value="Classic">Classic</option>
+          <option value="Truck">Truck</option>
+        </select>
+        <button type="submit">🔍 Search</button>
+      </form>
+
+      <!-- Add Car form -->
+      <form method="POST" enctype="multipart/form-data">
+        <input type="text" name="name" placeholder="Enter car name" required>
+        <input type="text" name="year" placeholder="Enter year" required>
+        <input
+          type="text"
+          name="category"
+          placeholder="Category (e.g. Muscle)"
+          required
+        >
+        <input type="file" name="image">
+        <button type="submit">➕ Add Car</button>
+      </form>
+    </div>
+
+    <div class="top-right">
+      <h2>Top 5 Favorites</h2>
+      <div class="top-favorites">
+        <ul>
+          {% for fav in top_favorites %}
+            <li>{{ fav[0] }} – {{ fav[1] }} ❤️</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BOTTOM SECTION: Your full collection ── -->
+  <h2>Your Cars</h2>
+  {% for car in cars %}
+    <div class="car-entry">
+      <div style="display:flex; align-items:center;">
+        {% if car[4] %}
+          <img src="{{ url_for('static', filename='uploads/' + car[4]) }}">
+        {% endif %}
+        <div>
+          <strong>{{ car[1] }}</strong>
+          – {{ car[2] }} ({{ car[3] }})
+        </div>
+      </div>
+      <div class="actions">
+        <a href="{{ url_for('edit_car', id=car[0]) }}" title="Edit">✏️</a>
+        <a href="{{ url_for('delete_car', id=car[0]) }}" title="Delete">🗑️</a>
+        <a href="{{ url_for('favorite', car_id=car[0]) }}" title="Favorite">❤️</a>
+      </div>
+    </div>
+  {% endfor %}
+
+  <a
+    href="{{ url_for('logout') }}"
+    style="color:var(--accent); display:inline-block; margin-top:20px;"
+  >
+    🚪 Logout
+  </a>
+
+</body>
+</html>
